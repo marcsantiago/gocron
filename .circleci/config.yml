@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/marcsantiago/gocron
+
+    docker:
+      - image: circleci/golang:1.10
+
+    steps:
+      - checkout
+      - run: mkdir -p /tmp/circleci-results
+      - run: make init # install linter
+      - run: make lint
+      - run: go test -race -coverprofile=coverage.out .
+      - run: go tool cover -html=coverage.out -o=/tmp/circleci-results/coverage.html
+      - store_artifacts:
+          path: /tmp/circleci-results

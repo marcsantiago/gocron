@@ -201,15 +201,15 @@ func (j *Job) periodDuration() (time.Duration, error) {
 	interval := time.Duration(j.interval)
 	switch j.unit {
 	case seconds:
-		return time.Duration(interval * time.Second), nil
+		return interval * time.Second, nil
 	case minutes:
-		return time.Duration(interval * time.Minute), nil
+		return interval * time.Minute, nil
 	case hours:
-		return time.Duration(interval * time.Hour), nil
+		return interval * time.Hour, nil
 	case days:
-		return time.Duration(interval * time.Hour * 24), nil
+		return interval * time.Hour * 24, nil
 	case weeks:
-		return time.Duration(interval * time.Hour * 24 * 7), nil
+		return interval * time.Hour * 24 * 7, nil
 	}
 	return interval, ErrPeriodNotSpecified
 }

@@ -1,0 +1,17 @@
+run:
+  deadline: 120s
+  tests: false
+
+linters:
+  enable-all: true
+  disable:
+  - errcheck
+  fast: false
+
+issues:
+  exclude:
+  # gas
+  - "G104: Errors unhandled"
+  exclude-use-default: false
+  max-same-issues: 1000
+  max-per-linter: 1000
