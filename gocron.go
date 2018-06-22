@@ -94,11 +94,13 @@ func (j *Job) shouldRun() bool {
 	return b
 }
 
-// Run the job and immdiately reschedule it
+// Run the job and immediately reschedule it
 func (j *Job) run() ([]reflect.Value, error) {
+	j.mu.Lock()
 	f := reflect.ValueOf(j.funcs[j.jobFunc])
 	params := j.fparams[j.jobFunc]
 	if len(params) != f.Type().NumIn() {
+		j.mu.Unlock()
 		return nil, ErrParamsNotAdapted
 	}
 
@@ -112,10 +114,11 @@ func (j *Job) run() ([]reflect.Value, error) {
 			}
 			in[k] = reflect.ValueOf(param)
 		}
+		j.mu.Unlock()
 		result = f.Call(in)
+		j.mu.Lock()
 	}
 
-	j.mu.Lock()
 	j.lastRun = time.Now()
 	j.mu.Unlock()
 
@@ -127,7 +130,7 @@ func (j *Job) run() ([]reflect.Value, error) {
 	return result, nil
 }
 
-// for given function fn , get the name of funciton.
+// for given function fn , get the name of function.
 func getFunctionName(fn interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf((fn)).Pointer()).Name()
 }
@@ -222,11 +225,11 @@ func (j *Job) roundToMidnight(t time.Time) time.Time {
 // scheduleNextRun Compute the instant when this job should run next
 func (j *Job) scheduleNextRun() error {
 	now := time.Now()
+	j.mu.Lock()
 	if j.lastRun == time.Unix(0, 0) {
-		j.mu.Lock()
 		j.lastRun = now
-		j.mu.Unlock()
 	}
+	j.mu.Unlock()
 
 	switch j.unit {
 	case days:
@@ -256,12 +259,12 @@ func (j *Job) scheduleNextRun() error {
 	}
 
 	// advance to next possible schedule
+	j.mu.Lock()
 	for j.nextRun.Before(now) || j.nextRun.Before(j.lastRun) {
 		j.shouldDo = true
-		j.mu.Lock()
 		j.nextRun = j.nextRun.Add(period)
-		j.mu.Unlock()
 	}
+	j.mu.Unlock()
 	return nil
 }
 
